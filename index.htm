@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cassa 01 — Scontrino Ricordo Omaggio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --bg:#e7eaee;
+    --panel:#ffffff;
+    --panel-2:#f5f7f9;
+    --text:#161a1f;
+    --muted:#646c77;
+    --line:#d5dae0;
+    --line-soft:#e6eaee;
+    --accent:#115e67;
+    --accent-ink:#ffffff;
+    --accent-soft:#e2f0f1;
+    --machine:#252a31;
+    --machine-2:#1a1e24;
+    --led:#e6a52a;
+    --paper:#fffdf6;
+    --ink:#1b1b1b;
+    --shadow:0 1px 1px rgba(20,25,32,.05), 0 10px 30px rgba(20,25,32,.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#111418;
+      --panel:#191d23;
+      --panel-2:#1f242b;
+      --text:#e7eaee;
+      --muted:#98a1ac;
+      --line:#2c323a;
+      --line-soft:#242931;
+      --accent:#41b5b4;
+      --accent-ink:#06211f;
+      --accent-soft:#17323a;
+      --machine:#0d1013;
+      --machine-2:#080a0c;
+      --shadow:0 1px 1px rgba(0,0,0,.5), 0 12px 34px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#111418; --panel:#191d23; --panel-2:#1f242b; --text:#e7eaee; --muted:#98a1ac;
+    --line:#2c323a; --line-soft:#242931; --accent:#41b5b4; --accent-ink:#06211f; --accent-soft:#17323a;
+    --machine:#0d1013; --machine-2:#080a0c;
+    --shadow:0 1px 1px rgba(0,0,0,.5), 0 12px 34px rgba(0,0,0,.55);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- machine chrome ---------- */
+  .topbar{
+    background:var(--machine);
+    color:#e9edf1;
+    border-bottom:1px solid rgba(255,255,255,.07);
+  }
+  .led{
+    width:9px;height:9px;border-radius:50%;
+    background:var(--led);
+    box-shadow:0 0 0 2px rgba(230,165,42,.18), 0 0 10px rgba(230,165,42,.65);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .led{animation:blink 3.2s ease-in-out infinite}
+    @keyframes blink{0%,92%,100%{opacity:1}96%{opacity:.35}}
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    box-shadow:var(--shadow);
+  }
+  .group{border-top:1px solid var(--line-soft)}
+  .group:first-child{border-top:0}
+  .group-title{font-size:.8125rem;font-weight:600;letter-spacing:.005em}
+  .hint{font-size:.75rem;color:var(--muted)}
+
+  label.lbl{display:block;font-size:.75rem;color:var(--muted);margin-bottom:.3rem;font-weight:500}
+  .field{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:.5rem .6rem;
+    font:inherit;
+    font-size:.875rem;
+    color:var(--text);
+    transition:border-color .12s ease, box-shadow .12s ease;
+  }
+  textarea.field{resize:vertical;min-height:62px;line-height:1.45}
+  .field::placeholder{color:var(--muted);opacity:.7}
+  .field:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:.45rem;
+    border-radius:4px;padding:.55rem .85rem;
+    font-size:.8125rem;font-weight:600;
+    border:1px solid transparent;cursor:pointer;
+    font-family:inherit;
+    transition:background .12s ease,border-color .12s ease,color .12s ease;
+  }
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn-primary{background:var(--accent);color:var(--accent-ink)}
+  .btn-primary:hover{filter:brightness(1.08)}
+  .btn-machine{background:rgba(255,255,255,.08);color:#e9edf1;border-color:rgba(255,255,255,.14)}
+  .btn-machine:hover{background:rgba(255,255,255,.15)}
+  .btn-quiet{background:var(--panel-2);color:var(--text);border-color:var(--line)}
+  .btn-quiet:hover{border-color:var(--accent);color:var(--accent)}
+  .icon-btn{
+    width:30px;height:30px;display:grid;place-items:center;
+    border-radius:4px;border:1px solid var(--line);background:var(--panel-2);
+    color:var(--muted);cursor:pointer;font-size:.9rem;line-height:1;
+  }
+  .icon-btn:hover{color:#c2410c;border-color:#c2410c}
+  .icon-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .item-row{display:grid;grid-template-columns:1fr 70px 30px;gap:.4rem;align-items:center}
+  .item-head{display:grid;grid-template-columns:1fr 70px 30px;gap:.4rem;font-size:.7rem;color:var(--muted)}
+
+  /* ---------- logo picker ---------- */
+  .logo-box{display:flex;gap:.75rem;align-items:flex-start}
+  .logo-prev{
+    flex:none;width:76px;height:76px;
+    border:1px dashed var(--line);border-radius:4px;
+    background:var(--panel-2);
+    display:grid;place-items:center;overflow:hidden;
+    font-size:26px;color:var(--muted);
+  }
+  .logo-prev img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+  .file-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  input[type="range"]{accent-color:var(--accent);width:100%}
+  input[type="checkbox"]{accent-color:var(--accent);width:15px;height:15px}
+
+  /* ---------- printer + paper ---------- */
+  .printer{position:sticky;top:1.25rem}
+  .slot{
+    background:linear-gradient(180deg,var(--machine) 0%,var(--machine-2) 100%);
+    border-radius:8px 8px 3px 3px;
+    padding:.6rem .85rem .75rem;
+    display:flex;align-items:center;justify-content:space-between;
+    color:#aeb6c0;font-size:.6875rem;letter-spacing:.06em;
+    border:1px solid rgba(255,255,255,.06);
+  }
+  .slot-mouth{
+    height:6px;margin:.55rem -.35rem -1.1rem;
+    background:#000;border-radius:3px;
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.06);
+  }
+  .paper{
+    position:relative;
+    width:100%;max-width:340px;margin:0 auto;
+    filter:drop-shadow(0 12px 22px rgba(20,25,32,.18));
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .paper.feed{animation:feed .55s cubic-bezier(.22,.7,.3,1)}
+    @keyframes feed{from{transform:translateY(-14px);opacity:.25}to{transform:translateY(0);opacity:1}}
+  }
+  .tear{height:8px;background-color:var(--paper)}
+  .tear-b{
+    background-image:
+      linear-gradient(45deg,transparent 50%,var(--paper) 50%),
+      linear-gradient(-45deg,transparent 50%,var(--paper) 50%);
+    background-size:14px 8px;background-color:transparent;background-repeat:repeat-x;
+  }
+  .tear-t{transform:scaleY(-1)}
+  .receipt{
+    background:var(--paper);
+    background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.016) 0 1px,transparent 1px 4px);
+    color:var(--ink);
+    font-family:"Courier Prime","Courier New",Courier,monospace;
+    font-size:12.5px;line-height:1.55;
+    padding:16px 18px 20px;
+    word-break:break-word;
+  }
+  .r-center{text-align:center}
+  .r-shop{font-size:15px;font-weight:700;letter-spacing:.09em;line-height:1.3}
+  .r-logo{font-size:24px;line-height:1.1;margin-bottom:4px}
+  .r-logo-img{display:block;margin:0 auto 6px;max-width:100%;height:auto}
+  .r-logo-img.mono{filter:grayscale(1) contrast(1.18) brightness(.96)}
+  .r-small{font-size:11px}
+  .r-dim{color:rgba(27,27,27,.72)}
+  .rule{border-top:1px dashed rgba(27,27,27,.45);margin:9px 0}
+  .rule-solid{border-top:1px solid rgba(27,27,27,.65);margin:9px 0}
+  .barcode{display:flex;align-items:flex-end;gap:1px;height:42px;justify-content:center;margin-top:12px}
+  .barcode i{display:block;background:#1b1b1b;height:100%}
+
+  /* ---------- print ---------- */
+  @media print{
+    .no-print{display:none !important}
+    html,body{background:#fff !important;margin:0 !important;padding:0 !important}
+    .app{display:block !important;padding:0 !important;margin:0 !important;max-width:none !important;gap:0 !important}
+    .printer{position:static !important}
+    .paper{max-width:76mm !important;width:76mm !important;margin:0 auto !important;filter:none !important;animation:none !important}
+    .tear{display:none !important}
+    .receipt{
+      background:#fff !important;background-image:none !important;
+      padding:0 !important;font-size:11.5px;color:#000 !important;
+    }
+    .rule,.rule-solid{border-color:#000 !important}
+    .barcode i{background:#000 !important}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{margin:8mm}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar no-print">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
+    <div class="flex items-center gap-3">
+      <span class="led" aria-hidden="true"></span>
+      <div class="leading-tight">
+        <div class="text-sm font-semibold tracking-wide">Scontrino Ricordo</div>
+        <div class="text-[11px] text-white/55">Edizione Omaggio · pronto</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="btnRandom" class="btn btn-machine" type="button">Genera casuale</button>
+      <button id="btnClear" class="btn btn-machine" type="button">Svuota</button>
+      <button id="btnPrint" class="btn btn-primary" type="button">Stampa scontrino</button>
+    </div>
+  </div>
+</header>
+
+<main class="app mx-auto max-w-6xl px-4 sm:px-6 py-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+
+  <!-- ============ pannello di controllo ============ -->
+  <section class="panel no-print overflow-hidden">
+
+    <div class="group p-5">
+      <h2 class="group-title">Intestazione</h2>
+      <p class="hint mt-0.5 mb-4">Nome del brand o dell'evento in cima.</p>
+      <div>
+        <label class="lbl" for="shop">Nome / Brand</label>
+        <input id="shop" class="field" value="LittleFlycy" placeholder="LittleFlycy">
+      </div>
+
+      <div class="mt-4">
+        <span class="lbl">Logo o Icona</span>
+        <div class="logo-box">
+          <div class="logo-prev" id="logoPrev" aria-hidden="true">✨</div>
+          <div class="flex-1 min-w-0 grid gap-2">
+            <div class="flex gap-2 flex-wrap">
+              <label class="btn btn-quiet" for="logoFile" id="logoFileLabel" tabindex="0" role="button">Carica immagine</label>
+              <input id="logoFile" class="file-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml">
+              <button id="btnLogoClear" class="btn btn-quiet" type="button">Togli immagine</button>
+            </div>
+            <input id="logoUrl" class="field" placeholder="oppure incolla il link di un'immagine (https://…)">
+            <input id="logoText" class="field" maxlength="24" value="✨" placeholder="oppure testo o emoji">
+            <p class="hint" id="logoHint">Se non c'è nessuna immagine, sullo scontrino resta il testo.</p>
+          </div>
+        </div>
+        <div id="logoOpts" class="hidden grid gap-3 sm:grid-cols-2 mt-3">
+          <div>
+            <label class="lbl" for="logoSize">Larghezza sullo scontrino: <span id="logoSizeVal">120 px</span></label>
+            <input id="logoSize" type="range" min="40" max="240" step="4" value="120">
+          </div>
+          <label class="flex items-center gap-2 text-xs sm:mt-6" for="logoMono">
+            <input id="logoMono" type="checkbox" checked>
+            <span>Monocromatico, come la carta termica</span>
+          </label>
+        </div>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2 mt-3">
+        <div>
+          <label class="lbl" for="address">Sottotitolo / Luogo</label>
+          <input id="address" class="field" value="Edizione Limitata - Omaggio" placeholder="Es. Evento speciale / Fan Edition">
+        </div>
+        <div>
+          <label class="lbl" for="contacts">Contatti / Social</label>
+          <input id="contacts" class="field" value="IG: @littleflycy · genius.com" placeholder="Social o link utili">
+        </div>
+      </div>
+    </div>
+
+    <div class="group p-5">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="group-title">Prodotti / Gadget omaggio</h2>
+          <p class="hint mt-0.5">Cosa stai regalando (senza prezzi).</p>
+        </div>
+        <button id="btnAddItem" class="btn btn-quiet" type="button">Aggiungi riga</button>
+      </div>
+      <div class="item-head px-0.5 mb-1">
+        <span>Nome Prodotto / Gadget</span><span>Q.tà</span><span></span>
+      </div>
+      <div id="items" class="grid gap-2"></div>
+    </div>
+
+    <div class="group p-5">
+      <h2 class="group-title">Dettagli e Dedica</h2>
+      <p class="hint mt-0.5 mb-4">Personalizza la chiusura del tagliando ricordo.</p>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label class="lbl" for="when">Data e ora</label>
+          <div class="flex gap-2">
+            <input id="when" class="field" type="datetime-local">
+            <button id="btnNow" class="btn btn-quiet shrink-0" type="button">Adesso</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="lbl" for="operator">Rilasciato da</label>
+            <input id="operator" class="field" value="Flycy" placeholder="Nome">
+          </div>
+          <div>
+            <label class="lbl" for="docNo">N. Tagliando</label>
+            <input id="docNo" class="field" value="0001" placeholder="0001">
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="lbl" for="footer">Messaggio / Dedica finale</label>
+        <textarea id="footer" class="field" rows="2" placeholder="Prodotto omaggio distribuito come ricordo. Grazie per il supporto!">Prodotto omaggio distribuito come ricordo. Grazie per il supporto! ❤️</textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ anteprima ============ -->
+  <section>
+    <div class="printer">
+      <div class="slot no-print" aria-hidden="true">
+        <span>OMAGGIO</span>
+        <span>RICORDO · TERMICA</span>
+      </div>
+      <div class="slot-mouth no-print" aria-hidden="true"></div>
+
+      <div class="paper" id="paper">
+        <div class="tear tear-b tear-t" aria-hidden="true"></div>
+        <div class="receipt" id="receipt" role="region" aria-label="Anteprima dello scontrino" aria-live="polite"></div>
+        <div class="tear tear-b" aria-hidden="true"></div>
+      </div>
+
+      <p class="hint no-print text-center mt-4">Con “Stampa scontrino” va in stampa solo la carta ricordo, senza l’interfaccia.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  var $ = function(s){ return document.querySelector(s); };
+  var itemsBox = $("#items");
+  var receipt  = $("#receipt");
+  var paper    = $("#paper");
+
+  function esc(s){
+    return String(s == null ? "" : s)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+  function qtyLabel(q){
+    var v = Math.round(q * 1000) / 1000;
+    return (v % 1 === 0 ? String(v) : v);
+  }
+
+  /* ---------- righe articolo ---------- */
+  function addItem(desc, qty){
+    var row = document.createElement("div");
+    row.className = "item-row";
+    row.innerHTML =
+      '<input class="field js-desc" placeholder="Nome prodotto / gadget" value="' + esc(desc || "") + '">' +
+      '<input class="field js-qty" type="number" min="1" step="1" value="' + (qty == null ? 1 : qty) + '">' +
+      '<button type="button" class="icon-btn js-del" aria-label="Rimuovi riga">✕</button>';
+    itemsBox.appendChild(row);
+    return row;
+  }
+
+  function readItems(){
+    var out = [];
+    var rows = itemsBox.querySelectorAll(".item-row");
+    for (var i = 0; i < rows.length; i++){
+      var desc  = rows[i].querySelector(".js-desc").value.trim();
+      var qty   = parseInt(rows[i].querySelector(".js-qty").value, 10);
+      if (!desc) continue;
+      out.push({
+        desc: desc,
+        qty: isFinite(qty) && qty > 0 ? qty : 1
+      });
+    }
+    return out;
+  }
+
+  itemsBox.addEventListener("click", function(e){
+    var btn = e.target.closest(".js-del");
+    if (!btn) return;
+    if (itemsBox.querySelectorAll(".item-row").length === 1){
+      var r = btn.parentElement;
+      r.querySelector(".js-desc").value = "";
+      r.querySelector(".js-qty").value = 1;
+    } else {
+      btn.parentElement.remove();
+    }
+    render();
+  });
+
+  $("#btnAddItem").addEventListener("click", function(){
+    var row = addItem("", 1);
+    row.querySelector(".js-desc").focus();
+    render();
+  });
+
+  /* ---------- data e ora ---------- */
+  function toLocalInput(d){
+    var p = function(n){ return String(n).padStart(2,"0"); };
+    return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate()) +
+           "T" + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+  function setNow(){ $("#when").value = toLocalInput(new Date()); }
+  $("#btnNow").addEventListener("click", function(){ setNow(); render(); });
+
+  function prettyDate(v){
+    if (!v) return { d:"—", t:"—" };
+    var d = new Date(v);
+    if (isNaN(d.getTime())) return { d:"—", t:"—" };
+    var p = function(n){ return String(n).padStart(2,"0"); };
+    return {
+      d: p(d.getDate()) + "/" + p(d.getMonth()+1) + "/" + d.getFullYear(),
+      t: p(d.getHours()) + ":" + p(d.getMinutes())
+    };
+  }
+
+  /* ---------- barcode ---------- */
+  function barcode(seed){
+    var s = String(seed || "0000") + "omaggio";
+    var h = 7;
+    var html = "";
+    for (var i = 0; i < 46; i++){
+      h = (h * 31 + s.charCodeAt(i % s.length)) % 9973;
+      var w = 1 + (h % 3);
+      var tall = (h % 7) > 1;
+      html += '<i style="width:' + w + 'px;height:' + (tall ? 100 : 78) + '%"></i>';
+      html += '<i style="width:' + (1 + ((h >> 3) % 2)) + 'px;background:transparent"></i>';
+    }
+    return html;
+  }
+
+  /* ---------- logo ---------- */
+  var logoData = null;
+
+  function paintLogoPreview(src, txt){
+    var box = $("#logoPrev");
+    if (src){
+      var img = box.querySelector("img");
+      if (!img){
+        box.innerHTML = "";
+        img = document.createElement("img");
+        img.alt = "";
+        img.addEventListener("error", function(){
+          box.innerHTML = "";
+          box.textContent = "link non valido";
+          box.style.fontSize = "11px";
+          box.style.textAlign = "center";
+        });
+        box.appendChild(img);
+      }
+      if (img.getAttribute("src") !== src){
+        box.style.fontSize = "";
+        img.setAttribute("src", src);
+      }
+    } else {
+      box.innerHTML = "";
+      box.style.fontSize = "";
+      box.style.textAlign = "";
+      box.textContent = txt || "—";
+    }
+  }
+
+  $("#logoFile").addEventListener("change", function(e){
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024){
+      $("#logoHint").textContent = "Immagine troppo pesante: usa un file sotto i 4 MB.";
+      e.target.value = "";
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(){ logoData = reader.result; render(); };
+    reader.onerror = function(){ $("#logoHint").textContent = "Lettura del file non riuscita: riprova con un altro formato."; };
+    reader.readAsDataURL(file);
+  });
+
+  $("#logoFileLabel").addEventListener("keydown", function(e){
+    if (e.key === "Enter" || e.key === " "){ e.preventDefault(); $("#logoFile").click(); }
+  });
+
+  $("#btnLogoClear").addEventListener("click", function(){
+    logoData = null;
+    $("#logoFile").value = "";
+    $("#logoUrl").value = "";
+    render();
+  });
+
+  $("#logoUrl").addEventListener("input", function(){
+    if (this.value.trim()){ logoData = null; $("#logoFile").value = ""; }
+  });
+
+  $("#logoSize").addEventListener("input", function(){
+    $("#logoSizeVal").textContent = this.value + " px";
+  });
+
+  /* ---------- render ---------- */
+  function render(){
+    var items = readItems();
+    var pieces = items.reduce(function(s, it){ return s + it.qty; }, 0);
+
+    var when = prettyDate($("#when").value);
+    var docNo = $("#docNo").value.trim() || "0000";
+
+    var h = "";
+
+    /* intestazione */
+    var logoSrc = logoData || $("#logoUrl").value.trim();
+    var logoTxt = $("#logoText").value.trim();
+    var logoW   = parseInt($("#logoSize").value, 10) || 120;
+    var mono    = $("#logoMono").checked;
+    $("#logoOpts").classList.toggle("hidden", !logoSrc);
+    $("#logoHint").textContent = logoData
+      ? "Immagine caricata: viene inclusa nello scontrino e in stampa."
+      : (logoSrc ? "Link esterno: si vede solo se la pagina può caricare quel dominio."
+                 : "Se non c'è nessuna immagine, sullo scontrino resta il testo.");
+    paintLogoPreview(logoSrc, logoTxt);
+
+    h += '<div class="r-center">';
+    if (logoSrc){
+      h += '<img class="r-logo-img' + (mono ? " mono" : "") + '" src="' + esc(logoSrc) +
+           '" alt="' + esc($("#shop").value.trim()) + '" style="width:' + logoW + 'px"' +
+           ' onerror="this.remove()">';
+    } else if (logoTxt){
+      h += '<div class="r-logo">' + esc(logoTxt) + '</div>';
+    }
+    h += '<div class="r-shop">' + esc(($("#shop").value.trim() || "Brand").toUpperCase()) + '</div>';
+    var addr = $("#address").value.trim();
+    var contacts = $("#contacts").value.trim();
+    if (addr)     h += '<div class="r-small">' + esc(addr) + '</div>';
+    if (contacts) h += '<div class="r-small r-dim">' + esc(contacts) + '</div>';
+    h += '</div>';
+
+    h += '<div class="rule"></div>';
+    h += '<div class="r-small" style="display:flex;justify-content:space-between"><span>Tagliando n. ' + esc(docNo) + '</span><span>' + when.d + '  ' + when.t + '</span></div>';
+    var op = $("#operator").value.trim();
+    h += '<div class="r-small r-dim" style="display:flex;justify-content:space-between"><span>' + (op ? "Rilasciato da: " + esc(op) : "&nbsp;") + '</span><span>OMAGGIO</span></div>';
+    h += '<div class="rule-solid"></div>';
+
+    /* articoli / prodotti */
+    if (!items.length){
+      h += '<div class="r-center r-dim r-small" style="padding:14px 0">Nessun prodotto inserito</div>';
+    } else {
+      for (var i = 0; i < items.length; i++){
+        var it = items[i];
+        h += '<div style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:baseline">' +
+               '<div><strong>' + esc(it.desc) + '</strong></div>' +
+               '<div class="r-small r-dim">Q.tà: ' + qtyLabel(it.qty) + '</div>' +
+             '</div>';
+      }
+    }
+
+    /* chiusura */
+    var foot = $("#footer").value.trim();
+    h += '<div class="rule"></div>';
+    if (foot){
+      h += '<div class="r-center" style="white-space:pre-line;margin:10px 0 2px">' + esc(foot) + '</div>';
+    }
+    h += '<div class="barcode" aria-hidden="true">' + barcode(docNo + when.t) + '</div>';
+    h += '<div class="r-center r-small r-dim" style="letter-spacing:.18em;margin-top:5px">' +
+         esc(String(docNo).replace(/\D/g,"").padStart(4,"0")) + " " + when.d.replace(/\//g,"") + '</div>';
+
+    receipt.innerHTML = h;
+  }
+
+  /* ---------- feed animazione ---------- */
+  function feed(){
+    paper.classList.remove("feed");
+    void paper.offsetWidth;
+    paper.classList.add("feed");
+  }
+
+  /* ---------- dati casuali ---------- */
+  var BRANDS = [
+    { logo:"✨", name:"LittleFlycy", foot:"Creato come ricordo speciale. Grazie per esserci!" },
+    { logo:"🚀", name:"Flycy Edition", foot:"Ricordo esclusivo fan edition - 100% gratuito" },
+    { logo:"🎨", name:"Art Drop Omaggio", foot:"Ricordo ufficiale dell'evento!" },
+    { logo:"💎", name:"Limited Gift", foot:"Custodisci questo ricordo con cura!" }
+  ];
+  var SUB = ["Edizione Limitata - Omaggio", "Fan Item & Memorabilia", "Special Drop Gratuito", "Ricordo Esclusivo"];
+  var SOCIAL = ["IG: @littleflycy · TikTok: @flycy", "genius.com/artists/Littleflycy", "Community Ufficiale Omaggio"];
+  var NAMES = ["Flycy", "Staff", "Creator"];
+  var GOODS = [
+    ["Gadget Esclusivo", 1],
+    ["Cartolina da collezione", 1],
+    ["Stickerpack firmato", 1],
+    ["Accessorio Speciale", 1],
+    ["Ricordo firmato", 1]
+  ];
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+
+  $("#btnRandom").addEventListener("click", function(){
+    var b = pick(BRANDS);
+    $("#logoText").value = b.logo;
+    $("#shop").value = b.name;
+    $("#footer").value = b.foot;
+    $("#address").value = pick(SUB);
+    $("#contacts").value = pick(SOCIAL);
+    $("#operator").value = pick(NAMES);
+    $("#docNo").value = String(randInt(1, 999)).padStart(4,"0");
+
+    itemsBox.innerHTML = "";
+    var g = pick(GOODS);
+    addItem(g[0], g[1]);
+
+    setNow();
+    render();
+    feed();
+  });
+
+  $("#btnClear").addEventListener("click", function(){
+    ["shop","address","contacts","operator","footer"].forEach(function(id){ $("#" + id).value = ""; });
+    logoData = null;
+    $("#logoFile").value = "";
+    $("#logoUrl").value = "";
+    $("#logoText").value = "✨";
+    $("#docNo").value = "0001";
+    itemsBox.innerHTML = "";
+    addItem("Gadget ricordo omaggio", 1);
+    setNow();
+    render();
+    $("#shop").focus();
+  });
+
+  $("#btnPrint").addEventListener("click", function(){ window.print(); });
+
+  /* ---------- avvio ---------- */
+  document.addEventListener("input", function(e){
+    if (e.target.closest(".panel")) render();
+  });
+  document.addEventListener("change", function(e){
+    if (e.target.closest(".panel")) render();
+  });
+
+  addItem("Gadget ricordo omaggio", 1);
+  setNow();
+  render();
+  feed();
+})();
+</script>
+</body>
+</html>
